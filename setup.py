@@ -7,7 +7,8 @@ INSTALL_REQUIRES = [
     "aiohttp>=3.1,<4.0"
 ]
 TESTS_REQUIRE = [
-    "asynctest>=0.12.0,<1.0.0",
+    "pytest-asyncio",
+    "aioconsole",
     "coverage>=4.5,<5.0",
     "docker>=3.5.1",
     "flake8",
@@ -43,7 +44,7 @@ setup(
                                   read('docs/source/changes.rst'))),
     classifiers=[
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: Implementation :: CPython",
         "Framework :: AsyncIO",
         "License :: OSI Approved :: MIT License"
@@ -55,7 +56,7 @@ setup(
     project_urls=metadata["PROJECT_URLS"],
     license="MIT",
     packages=find_packages(exclude=("tests*", "examples")),
-    python_requires=">=3.10.0",
+    python_requires=">=3.11.0",
     install_requires=INSTALL_REQUIRES,
     tests_require=TESTS_REQUIRE,
     extras_require={

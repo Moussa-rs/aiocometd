@@ -1,13 +1,12 @@
 import asyncio
 
-from asynctest import TestCase, TestSuite
-
+from unittest import IsolatedAsyncioTestCase, TestSuite
 from aiocometd import Client, ConnectionType
 from aiocometd.exceptions import TransportTimeoutError
 from tests.integration.helpers import DockerContainer
 
 
-class BaseTestCase(TestCase):
+class BaseTestCase(IsolatedAsyncioTestCase):
     #: name of the docker image containing the CometD demo services
     IMAGE_NAME = "robertmrk/cometd-demos:alpine"
     #: a name for the container
@@ -42,10 +41,9 @@ class BaseTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.container = DockerContainer(cls.IMAGE_NAME,
-                                        cls.CONTAINER_NAME,
-                                        cls.CONTAINER_PORT,
-                                        cls.HOST_PORT)
+        cls.container = DockerContainer(
+            cls.IMAGE_NAME, cls.CONTAINER_NAME, cls.CONTAINER_PORT, cls.HOST_PORT
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -55,8 +53,7 @@ class BaseTestCase(TestCase):
 class TestChat(BaseTestCase):
     async def test_single_client_chat(self):
         # create client
-        async with Client(self.COMETD_URL,
-                          self.CONNECTION_TYPE) as client:
+        async with Client(self.COMETD_URL, self.CONNECTION_TYPE) as client:
             # subscribe to channels
             await client.subscribe(self.CHAT_ROOM_CHANNEL)
             await client.subscribe(self.MEMBERS_CHANGED_CHANNEL)
@@ -65,44 +62,40 @@ class TestChat(BaseTestCase):
             join_message = {
                 "user": self.USER_NAME1,
                 "membership": "join",
-                "chat": self.USER_NAME1 + " has joined"
+                "chat": self.USER_NAME1 + " has joined",
             }
             await client.publish(self.CHAT_ROOM_CHANNEL, join_message)
             # add the user to the room's members
-            await client.publish(self.MEMBERS_CHANNEL, {
-                "user": self.USER_NAME1,
-                "room": self.CHAT_ROOM_CHANNEL
-            })
+            await client.publish(
+                self.MEMBERS_CHANNEL,
+                {"user": self.USER_NAME1, "room": self.CHAT_ROOM_CHANNEL},
+            )
 
             # verify the reception of the initial and members messages
             message = await client.receive()
-            self.assertEqual(message, {
-                "data": join_message,
-                "channel": self.CHAT_ROOM_CHANNEL
-            })
+            self.assertEqual(
+                message, {"data": join_message, "channel": self.CHAT_ROOM_CHANNEL}
+            )
             message = await client.receive()
-            self.assertEqual(message, {
-                "data": [self.USER_NAME1],
-                "channel": self.MEMBERS_CHANGED_CHANNEL
-            })
+            self.assertEqual(
+                message,
+                {"data": [self.USER_NAME1], "channel": self.MEMBERS_CHANGED_CHANNEL},
+            )
 
             # send a chat message
-            chat_message = {
-                "user": self.USER_NAME1,
-                "chat": "test_message"
-            }
+            chat_message = {"user": self.USER_NAME1, "chat": "test_message"}
             await client.publish(self.CHAT_ROOM_CHANNEL, chat_message)
             # verify chat message
             message = await client.receive()
-            self.assertEqual(message, {
-                "data": chat_message,
-                "channel": self.CHAT_ROOM_CHANNEL
-            })
+            self.assertEqual(
+                message, {"data": chat_message, "channel": self.CHAT_ROOM_CHANNEL}
+            )
 
     async def test_multi_client_chat(self):
         # create two clients
-        async with Client(self.COMETD_URL, self.CONNECTION_TYPE) as client1, \
-                Client(self.COMETD_URL, self.CONNECTION_TYPE) as client2:
+        async with Client(self.COMETD_URL, self.CONNECTION_TYPE) as client1, Client(
+            self.COMETD_URL, self.CONNECTION_TYPE
+        ) as client2:
             # subscribe to channels with client1
             await client1.subscribe(self.CHAT_ROOM_CHANNEL)
             await client1.subscribe(self.MEMBERS_CHANGED_CHANNEL)
@@ -111,27 +104,26 @@ class TestChat(BaseTestCase):
             join_message1 = {
                 "user": self.USER_NAME1,
                 "membership": "join",
-                "chat": self.USER_NAME1 + " has joined"
+                "chat": self.USER_NAME1 + " has joined",
             }
             await client1.publish(self.CHAT_ROOM_CHANNEL, join_message1)
             # add the user1 to the room's members
-            await client1.publish(self.MEMBERS_CHANNEL, {
-                "user": self.USER_NAME1,
-                "room": self.CHAT_ROOM_CHANNEL
-            })
+            await client1.publish(
+                self.MEMBERS_CHANNEL,
+                {"user": self.USER_NAME1, "room": self.CHAT_ROOM_CHANNEL},
+            )
 
             # verify the reception of the initial and members messages
             # for client1
             message = await client1.receive()
-            self.assertEqual(message, {
-                "data": join_message1,
-                "channel": self.CHAT_ROOM_CHANNEL
-            })
+            self.assertEqual(
+                message, {"data": join_message1, "channel": self.CHAT_ROOM_CHANNEL}
+            )
             message = await client1.receive()
-            self.assertEqual(message, {
-                "data": [self.USER_NAME1],
-                "channel": self.MEMBERS_CHANGED_CHANNEL
-            })
+            self.assertEqual(
+                message,
+                {"data": [self.USER_NAME1], "channel": self.MEMBERS_CHANGED_CHANNEL},
+            )
 
             # subscribe to channels with client2
             await client2.subscribe(self.CHAT_ROOM_CHANNEL)
@@ -141,47 +133,52 @@ class TestChat(BaseTestCase):
             join_message2 = {
                 "user": self.USER_NAME2,
                 "membership": "join",
-                "chat": self.USER_NAME2 + " has joined"
+                "chat": self.USER_NAME2 + " has joined",
             }
             await client2.publish(self.CHAT_ROOM_CHANNEL, join_message2)
             # add the user2 to the room's members
-            await client2.publish(self.MEMBERS_CHANNEL, {
-                "user": self.USER_NAME2,
-                "room": self.CHAT_ROOM_CHANNEL
-            })
+            await client2.publish(
+                self.MEMBERS_CHANNEL,
+                {"user": self.USER_NAME2, "room": self.CHAT_ROOM_CHANNEL},
+            )
 
             # verify the reception of the initial and members messages of
             # client2 for client1
             message = await client1.receive()
-            self.assertEqual(message, {
-                "data": join_message2,
-                "channel": self.CHAT_ROOM_CHANNEL
-            })
+            self.assertEqual(
+                message, {"data": join_message2, "channel": self.CHAT_ROOM_CHANNEL}
+            )
             message = await client1.receive()
-            self.assertEqual(message, {
-                "data": [self.USER_NAME1, self.USER_NAME2],
-                "channel": self.MEMBERS_CHANGED_CHANNEL
-            })
+            self.assertEqual(
+                message,
+                {
+                    "data": [self.USER_NAME1, self.USER_NAME2],
+                    "channel": self.MEMBERS_CHANGED_CHANNEL,
+                },
+            )
 
             # verify the reception of the initial and members messages
             # for client2
             message = await client2.receive()
-            self.assertEqual(message, {
-                "data": join_message2,
-                "channel": self.CHAT_ROOM_CHANNEL
-            })
+            self.assertEqual(
+                message, {"data": join_message2, "channel": self.CHAT_ROOM_CHANNEL}
+            )
             message = await client2.receive()
-            self.assertEqual(message, {
-                "data": [self.USER_NAME1, self.USER_NAME2],
-                "channel": self.MEMBERS_CHANGED_CHANNEL
-            })
+            self.assertEqual(
+                message,
+                {
+                    "data": [self.USER_NAME1, self.USER_NAME2],
+                    "channel": self.MEMBERS_CHANGED_CHANNEL,
+                },
+            )
 
 
 class TestTimeoutDetection(BaseTestCase):
     async def test_timeout_on_server_termination(self):
         # create client
-        async with Client(self.COMETD_URL, self.CONNECTION_TYPE,
-                          connection_timeout=1) as client:
+        async with Client(
+            self.COMETD_URL, self.CONNECTION_TYPE, connection_timeout=1
+        ) as client:
             # subscribe to the room's channel
             await client.subscribe(self.CHAT_ROOM_CHANNEL)
 
@@ -195,8 +192,9 @@ class TestTimeoutDetection(BaseTestCase):
 
     async def test_timeout_network_outage(self):
         # create client
-        async with Client(self.COMETD_URL, self.CONNECTION_TYPE,
-                          connection_timeout=1) as client:
+        async with Client(
+            self.COMETD_URL, self.CONNECTION_TYPE, connection_timeout=1
+        ) as client:
             # subscribe to the room's channel
             await client.subscribe(self.CHAT_ROOM_CHANNEL)
 
@@ -215,8 +213,9 @@ class TestTimeoutDetection(BaseTestCase):
 class TestErrorRecovery(BaseTestCase):
     async def test_revover_on_server_restart(self):
         # create client
-        async with Client(self.COMETD_URL, self.CONNECTION_TYPE,
-                          connection_timeout=3*60) as client:
+        async with Client(
+            self.COMETD_URL, self.CONNECTION_TYPE, connection_timeout=3 * 60
+        ) as client:
             # subscribe to the room's channel
             await client.subscribe(self.CHAT_ROOM_CHANNEL)
 
@@ -231,22 +230,19 @@ class TestErrorRecovery(BaseTestCase):
             await asyncio.sleep(3)
 
             # send a chat message
-            chat_message = {
-                "user": self.USER_NAME1,
-                "chat": "test_message"
-            }
+            chat_message = {"user": self.USER_NAME1, "chat": "test_message"}
             await client.publish(self.CHAT_ROOM_CHANNEL, chat_message)
             # verify chat message
             message = await client.receive()
-            self.assertEqual(message, {
-                "data": chat_message,
-                "channel": self.CHAT_ROOM_CHANNEL
-            })
+            self.assertEqual(
+                message, {"data": chat_message, "channel": self.CHAT_ROOM_CHANNEL}
+            )
 
     async def test_recover_on_temporary_network_outage(self):
         # create client
-        async with Client(self.COMETD_URL, self.CONNECTION_TYPE,
-                          connection_timeout=1) as client:
+        async with Client(
+            self.COMETD_URL, self.CONNECTION_TYPE, connection_timeout=1
+        ) as client:
             # subscribe to the room's channel
             await client.subscribe(self.CHAT_ROOM_CHANNEL)
 
@@ -264,17 +260,13 @@ class TestErrorRecovery(BaseTestCase):
             await asyncio.sleep(3)
 
             # send a chat message
-            chat_message = {
-                "user": self.USER_NAME1,
-                "chat": "test_message"
-            }
+            chat_message = {"user": self.USER_NAME1, "chat": "test_message"}
             await client.publish(self.CHAT_ROOM_CHANNEL, chat_message)
             # verify chat message
             message = await client.receive()
-            self.assertEqual(message, {
-                "data": chat_message,
-                "channel": self.CHAT_ROOM_CHANNEL
-            })
+            self.assertEqual(
+                message, {"data": chat_message, "channel": self.CHAT_ROOM_CHANNEL}
+            )
 
 
 class TestChatLongPolling(TestChat):
@@ -309,7 +301,7 @@ def load_tests(loader, tests, pattern):
         TestTimeoutDetectionLongPolling,
         TestTimeoutDetectionWebsocket,
         TestErrorRecoveryLongPolling,
-        TestErrorRecoveryWebsocket
+        TestErrorRecoveryWebsocket,
     )
     for case in cases:
         tests = loader.loadTestsFromTestCase(case)
