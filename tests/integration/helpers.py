@@ -25,7 +25,7 @@ class DockerContainer:
         #: container name
         self.name = name
         #: TCP port exposed by the container
-        self.contaner_port = container_port
+        self.container_port = container_port
         #: TCP port on the host where the exposed container port gets published
         self.host_port = host_port
         #: container instance
@@ -49,7 +49,7 @@ class DockerContainer:
             self._container = self.client.containers.run(
                 name=self.name,
                 image=self.image_name,
-                ports={f"{self.contaner_port}/tcp": self.host_port},
+                ports={f"{self.container_port}/tcp": self.host_port},
                 detach=True
             )
         # if it exists assign it to the instance attribute
