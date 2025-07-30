@@ -8,6 +8,6 @@ PROJECT_URLS = {
     "Coverage": "https://coveralls.io/github/robertmrk/aiocometd",
     "Docs": "http://aiocometd.readthedocs.io/"
 }
-VERSION = "0.4.6"
+VERSION = "0.4.8"
 AUTHOR = "Róbert Márki"
 AUTHOR_EMAIL = "gsmiko@gmail.com"
