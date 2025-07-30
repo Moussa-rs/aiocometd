@@ -45,6 +45,7 @@ setup(
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: CPython",
         "Framework :: AsyncIO",
         "License :: OSI Approved :: MIT License"
