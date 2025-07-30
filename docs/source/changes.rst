@@ -1,6 +1,21 @@
 Changelog
 =========
 
+0.4.8 (2025-07-30)
+------------------
+
+- Version bump to resolve dependency conflicts with aiosfstream
+
+0.4.7 (2022-08-18)
+------------------
+
+- Python 3.10 support
+
+0.4.6 (2019-03-14)
+------------------
+
+- Maintenance release
+
 0.4.5 (2019-03-14)
 ------------------
 
